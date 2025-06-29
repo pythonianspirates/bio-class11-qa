@@ -8,20 +8,20 @@ import uuid
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# Load sentence transformer model
+# Loading sentence transformer model
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Initialize Qdrant client (in-memory)
+# Initializing Qdrant client (in-memory)
 qdrant = QdrantClient(":memory:")
 
-# ✅ Create collection only if not exists (avoids warning)
+#Creating collection only if not exists (avoids warning)
 if not qdrant.collection_exists("bio_class11"):
     qdrant.create_collection(
         collection_name="bio_class11",
         vectors_config=VectorParams(size=384, distance=Distance.COSINE)
     )
 
-# 📥 Load all PDFs from the 'pdfs' folder and upload their chunks
+#Loading all PDFs from the 'pdfs' folder and upload their chunks
 pdf_dir = os.path.join(os.path.dirname(__file__), "pdfs")
 for filename in os.listdir(pdf_dir):
     if filename.endswith(".pdf"):
@@ -37,12 +37,12 @@ for filename in os.listdir(pdf_dir):
 
         qdrant.upload_points(collection_name="bio_class11", points=points)
 
-# 🌐 Main page route
+# Main page route
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# 🔍 Search API
+# Search API
 @app.route("/search", methods=["POST"])
 def search():
     query = request.json["query"]
@@ -71,6 +71,5 @@ def search():
     "results": filtered if filtered else [{"chapter": "Not Found", "text": "No relevant content found."}]
 })
 
-# 🚀 Run app
 if __name__ == "__main__":
     app.run(debug=True)
